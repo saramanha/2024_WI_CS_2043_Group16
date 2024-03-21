@@ -9,8 +9,7 @@ public class mainMenu{
     	JFrame mainMenuFrame = new JFrame();
     	mainMenuFrame.setTitle("Supermarket Inventory System");
     	mainMenuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Add padding around the content pane
+    	// Add padding around the content pane
         JPanel contentPane = new JPanel(new BorderLayout());
         contentPane.setBorder(new EmptyBorder(20, 20, 20, 20));
         mainMenuFrame.setContentPane(contentPane);
@@ -18,46 +17,54 @@ public class mainMenu{
         //Create TabbedDataTable with some test data
         Object[][][] data = {
             {
-                {"Data 1", "Sample 1", "Extra 1"},
-                {"Data 2", "Sample 2", "Extra 2"},
-                {"Data 1", "Sample 1", "Extra 1"},
-                {"Data 2", "Sample 2", "Extra 2"},
-                {"Data 1", "Sample 1", "Extra 1"},
-                {"Data 2", "Sample 2", "Extra 2"},
-                {"Data 1", "Sample 1", "Extra 1"},
-                {"Data 2", "Sample 2", "Extra 2"},
-                {"Data 1", "Sample 1", "Extra 1"},
-                {"Data 2", "Sample 6", "Extra 6"},
-                {"Data 1", "Sample 7", "Extra 7"},
-                {"Data 2", "Sample 2", "Extra 2"}
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"}
             },
             {
-                {"Data 3", "Sample 3", "Extra 3"},
-                {"Data 4", "Sample 4", "Extra 4"},
-                {"Data 3", "Sample 3", "Extra 3"},
-                {"Data 4", "Sample 4", "Extra 4"},
-                {"Data 3", "Sample 3", "Extra 3"},
-                {"Data 4", "Sample 4", "Extra 4"},
-                {"Data 4", "Sample 4", "Extra 4"},
-                {"Data 3", "Sample 3", "Extra 3"},
-                {"Data 3", "Sample 3", "Extra 3"},
-                {"Data 4", "Sample 4", "Extra 4"},
-                {"Data 3", "Sample 3", "Extra 3"},
-                {"Data 4", "Sample 4", "Extra 4"}
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"}
+            },
+            {
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"},
+            	{"Data 1", "Sample 1"}
             }
         };
 
-        Object[][] columnNames = {
-            {"Column 1", "Column 2", "Column 3"},
-            {"Column A", "Column B", "Column C"}
-        };
         
-        JPanel tabbedDataTablePanel = tabbedDataTable.createTabbedDataTable(data, columnNames);
+        JPanel tabbedDataTablePanel = tabbedDataTable.createTabbedDataTable(data);
         
         mainMenuFrame.add(tabbedDataTablePanel, BorderLayout.CENTER);
 
         //Create buttons, arrange in grid, and add padding
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10)); // Add spacing between buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 20, 10)); // Add spacing between buttons
         buttonPanel.setBorder(new EmptyBorder(10, 0, 0, 0)); // Add spacing above the button panel
         JButton button1 = new JButton("Add Product to Stock Inventory");
         JButton button2 = new JButton("Move Product to Display Inventory");
@@ -97,8 +104,8 @@ public class mainMenu{
 
         //Add the button panel to the content pane
         contentPane.add(buttonPanel, BorderLayout.SOUTH);
-
-        mainMenuFrame.pack();
+        
+        mainMenuFrame.setSize(725, 356);
         mainMenuFrame.setLocationRelativeTo(null);
         mainMenuFrame.setVisible(true);
     }
