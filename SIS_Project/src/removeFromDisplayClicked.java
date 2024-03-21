@@ -24,19 +24,18 @@ public class removeFromDisplayClicked{
 
         // Mock data for demonstration
         String[][] data = {
-                {"Item 1", "Description 1"},
-                {"Item 2", "Description 2"},
-                {"Item 3", "Description 3"},
-                {"Item 4", "Description 4"},
-                {"Item 5", "Description 5"},
-                {"Item 6", "Description 6"},
-                {"Item 7", "Description 7"},
-                {"Item 8", "Description 8"},
-                {"Item 9", "Description 9"},
-                {"Item 10", "Description 10"},
-                {"Item 11", "Description 11"}
+    		{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"}
         };
-        String[] columnNames = {"Item", "Description"};
+        String[] columnNames = {"Display ID", "Product Name", "Quantity", "Price", "Location", "Expiration Date", "Discount"};
         JTable resultTable = new JTable(data, columnNames);
         resultTable.setDefaultEditor(Object.class, null); // Make the table non-editable
         
@@ -53,8 +52,9 @@ public class removeFromDisplayClicked{
         JPanel additionalFieldsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); // Align components to the right
         JTextField field1 = new JTextField(10);
         JButton submitButton = new JButton("Submit");
-        additionalFieldsPanel.add(new JLabel("Field 1:"));
+        additionalFieldsPanel.add(new JLabel("Quantity:"));
         additionalFieldsPanel.add(field1);
+		additionalFieldsPanel.add(Box.createHorizontalStrut(15)); // Add horizontal spacing of 10 pixels
         additionalFieldsPanel.add(submitButton);
 
         //Example of using the slected row of the datatable
@@ -78,7 +78,7 @@ public class removeFromDisplayClicked{
         contentPane.add(tablePanel, BorderLayout.CENTER);
         contentPane.add(additionalFieldsPanel, BorderLayout.SOUTH);
 
-        removeFrame.pack();
+        removeFrame.setSize(700, 348);
         removeFrame.setLocationRelativeTo(null);
         removeFrame.setVisible(true);
     }

@@ -20,7 +20,7 @@ public class addToStockClicked {
         option1Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                displayOption1();
+                addNewOption();
                 addProductFrame.dispose();
             }
         });
@@ -30,7 +30,7 @@ public class addToStockClicked {
         option2Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                displayOption2();
+                addExistingOption();
                 addProductFrame.dispose();
             }
         });
@@ -48,36 +48,40 @@ public class addToStockClicked {
     }
 
     // Method to display panel with 4 fields on one row and another row below with 3 fields and a submit button
-    private void displayOption1() {
+    private void addNewOption() {
     	// Create a new JFrame for Option 1
         JFrame option1Frame = new JFrame("Add New Product to Stock Inventory");
         option1Frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         // Create the panel with spacing along the border
-        JPanel option1Panel = new JPanel(new GridLayout(2, 1, 0, 10)); // 2 rows, 1 column, vertical gap of 10 pixels
+        JPanel option1Panel = new JPanel(new GridLayout(3, 1, 0, 10)); // 3 rows, 1 column, vertical gap of 10 pixels
         option1Panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Add spacing along the border
 
         // First row with 4 fields
         JPanel row1 = new JPanel(new FlowLayout());
-        row1.add(new JLabel("Field 1:"));
+        row1.add(new JLabel("Name:"));
         row1.add(new JTextField(10));
-        row1.add(new JLabel("Field 2:"));
+        row1.add(new JLabel("Category:"));
         row1.add(new JTextField(10));
-        row1.add(new JLabel("Field 3:"));
+        row1.add(new JLabel("Manufacturer:"));
         row1.add(new JTextField(10));
-        row1.add(new JLabel("Field 4:"));
+        row1.add(new JLabel("Price:"));
         row1.add(new JTextField(10));
 
         // Second row with 3 fields and a submit button
         JPanel row2 = new JPanel(new FlowLayout());
-        row2.add(new JLabel("Field 5:"));
+        row2.add(new JLabel("Expiration Date:"));
         row2.add(new JTextField(10));
-        row2.add(new JLabel("Field 6:"));
+        row2.add(new JLabel("Location(Aisle#-Shelf#):"));
         row2.add(new JTextField(10));
-        row2.add(new JLabel("Field 7:"));
+        row2.add(new JLabel("Quantity:"));
         row2.add(new JTextField(10));
+        row2.add(new JLabel("Discount(%):"));
+        row2.add(new JTextField(10));
+        
+        JPanel row3 = new JPanel(new FlowLayout());
         JButton submitButton = new JButton("Submit");
-        row2.add(submitButton);
+        row3.add(submitButton);
 
         // Add action listener to the submit button
         submitButton.addActionListener(new ActionListener() {
@@ -90,6 +94,7 @@ public class addToStockClicked {
         // Add rows to the option1Panel
         option1Panel.add(row1);
         option1Panel.add(row2);
+        option1Panel.add(row3);
 
         // Add the option1Panel to the JFrame
         option1Frame.add(option1Panel);
@@ -99,7 +104,7 @@ public class addToStockClicked {
     }
 
     // Method to display panel that looks exactly like Functionality 1
-    private void displayOption2() {
+    private void addExistingOption() {
     	// Create a new JFrame for Option 2
         JFrame option2Frame = new JFrame("Add Existing Product to Stock Inventory");
         option2Frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -119,19 +124,21 @@ public class addToStockClicked {
 		
 		// Mock data for demonstration
 		String[][] data = {
-			{"Item 1", "Description 1"},
-	        {"Item 2", "Description 2"},
-	        {"Item 3", "Description 3"},
-	        {"Item 4", "Description 4"},
-	        {"Item 5", "Description 5"},
-	        {"Item 6", "Description 6"},
-	        {"Item 7", "Description 7"},
-	        {"Item 8", "Description 8"},
-	        {"Item 9", "Description 9"},
-	        {"Item 10", "Description 10"},
-	        {"Item 11", "Description 11"}
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"},
+			{"Item 1", "Description 1", "Item 1", "Description 1", "Test"}
 		};
-		String[] columnNames = {"Item", "Description"};
+		String[] columnNames = {"Product ID", "Product Name", "Price", "Category Name", "Manufaturer Name"};
 		JTable resultTable = new JTable(data, columnNames);
 		resultTable.setDefaultEditor(Object.class, null); // Make the table non-editable
 		
@@ -151,13 +158,18 @@ public class addToStockClicked {
 		JTextField field1 = new JTextField(10);
 		JTextField field2 = new JTextField(10);
 		JTextField field3 = new JTextField(10);
+		JTextField field4 = new JTextField(10);
+
 		JButton submitButton = new JButton("Submit");
-		additionalFieldsPanel.add(new JLabel("Field 1:"));
+		additionalFieldsPanel.add(new JLabel("Expiration Date:"));
 		additionalFieldsPanel.add(field1);
-		additionalFieldsPanel.add(new JLabel("Field 2:"));
+		additionalFieldsPanel.add(new JLabel("Location(Aisle#-Shelf#):"));
 		additionalFieldsPanel.add(field2);
-		additionalFieldsPanel.add(new JLabel("Field 3:"));
+		additionalFieldsPanel.add(new JLabel("Quantity:"));
 		additionalFieldsPanel.add(field3);
+		additionalFieldsPanel.add(new JLabel("Discount(%):"));
+		additionalFieldsPanel.add(field4);
+		additionalFieldsPanel.add(Box.createHorizontalStrut(10)); // Add horizontal spacing of 10 pixels
 		additionalFieldsPanel.add(submitButton);
 		
 		//Example of using the slected row of the datatable

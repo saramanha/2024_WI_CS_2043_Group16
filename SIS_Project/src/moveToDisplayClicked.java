@@ -8,7 +8,7 @@ public class moveToDisplayClicked {
 		JFrame moveProductFrame = new JFrame();
 		moveProductFrame.setTitle("Move Product to Display Inventory");
 		moveProductFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		
+
 		// Get the content pane and add empty border to it for padding
 		JPanel contentPane = new JPanel(new BorderLayout());
 		contentPane.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -24,25 +24,27 @@ public class moveToDisplayClicked {
 		
 		// Mock data for demonstration
 		String[][] data = {
-			{"Item 1", "Description 1"},
-	        {"Item 2", "Description 2"},
-	        {"Item 3", "Description 3"},
-	        {"Item 4", "Description 4"},
-	        {"Item 5", "Description 5"},
-	        {"Item 6", "Description 6"},
-	        {"Item 7", "Description 7"},
-	        {"Item 8", "Description 8"},
-	        {"Item 9", "Description 9"},
-	        {"Item 10", "Description 10"},
-	        {"Item 11", "Description 11"}
+			{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"}
 		};
-		String[] columnNames = {"Item", "Description"};
+		String[] columnNames = {"Stock ID", "Product Name", "Quantity", "Price", "Location", "Expiration Date", "Discount"};
 		JTable resultTable = new JTable(data, columnNames);
 		resultTable.setDefaultEditor(Object.class, null); // Make the table non-editable
 		
 		JScrollPane scrollPane = new JScrollPane(resultTable);
 		JPanel tablePanel = new JPanel(new BorderLayout()); // Wrap the scroll pane in a panel
 		tablePanel.setBorder(new EmptyBorder(10, 0, 10, 0)); // Add padding around the table
+		tablePanel.setSize(500,500);
 		tablePanel.add(scrollPane, BorderLayout.CENTER); // Add scroll pane to the panel
 		
 		/// Set the preferred viewport size based on the number of rows
@@ -57,12 +59,15 @@ public class moveToDisplayClicked {
 		JTextField field2 = new JTextField(10);
 		JTextField field3 = new JTextField(10);
 		JButton submitButton = new JButton("Submit");
-		additionalFieldsPanel.add(new JLabel("Field 1:"));
+		additionalFieldsPanel.add(new JLabel("Quantity:"));
 		additionalFieldsPanel.add(field1);
-		additionalFieldsPanel.add(new JLabel("Field 2:"));
+		additionalFieldsPanel.add(Box.createHorizontalStrut(10)); // Add horizontal spacing of 10 pixels
+		additionalFieldsPanel.add(new JLabel("Location(Aisle#-Shelf#):"));
 		additionalFieldsPanel.add(field2);
-		additionalFieldsPanel.add(new JLabel("Field 3:"));
+		additionalFieldsPanel.add(Box.createHorizontalStrut(10)); // Add horizontal spacing of 10 pixels
+		additionalFieldsPanel.add(new JLabel("Discount(%):"));
 		additionalFieldsPanel.add(field3);
+		additionalFieldsPanel.add(Box.createHorizontalStrut(10)); // Add horizontal spacing of 10 pixels
 		additionalFieldsPanel.add(submitButton);
 		
 		//Example of using the slected row of the datatable
@@ -86,7 +91,7 @@ public class moveToDisplayClicked {
 		    contentPane.add(tablePanel, BorderLayout.CENTER);
 		    contentPane.add(additionalFieldsPanel, BorderLayout.SOUTH);
 		
-		    moveProductFrame.pack();
+		    moveProductFrame.setSize(810,348);
 		    moveProductFrame.setLocationRelativeTo(null);
 		    moveProductFrame.setVisible(true);
 		}
