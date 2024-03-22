@@ -116,4 +116,30 @@ public class DatabaseManager{
     return salesHistory;
     }
 
+
+
+
+    public static void removeProductFromDisplayInventory(int productId) throws SQLException {
+        checkConnection(); // Ensure the connection is established
+
+        // SQL query to delete a product from the display inventory table by its product ID
+        String query = "DELETE FROM display_inventory WHERE product_id = ?"; // Replace 'display_inventory' and 'product_id' with your actual table and column names
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        // Set the product ID parameter in the query
+        statement.setInt(1, productId);
+
+        // Execute the delete statement
+        int rowsAffected = statement.executeUpdate();
+        if (rowsAffected > 0) {
+            System.out.println("Product removed from display inventory successfully.");
+        } else {
+            System.out.println("No product found with the provided ID.");
+        }
+        }
+    }
+
+
+
+
 }
