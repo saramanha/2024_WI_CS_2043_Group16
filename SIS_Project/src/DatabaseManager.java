@@ -88,4 +88,32 @@ public class DatabaseManager{
         PreparedStatement statement = connection.prepareStatement();
         return statement.executeQuery();
     }
+
+    public static List<SalesRecord> getSalesHistory() throws SQLException {
+    checkConnection(); // Ensure connection is established
+
+   
+    String query = "SELECT * FROM sales_history"; // Replace 'sales_history' with your actual table name
+    List<SalesRecord> salesHistory = new ArrayList<>();
+
+    try (PreparedStatement statement = connection.prepareStatement(query);
+         ResultSet resultSet = statement.executeQuery()) {
+
+        while (resultSet.next()) {
+            // Retrieve each column value. 
+            int id = resultSet.getInt("id"); // Replace with your column name
+            int productId = resultSet.getInt("product_id"); // Replace with your column name
+            int quantity = resultSet.getInt("quantity_sold"); // Replace with your column name
+            double price = resultSet.getDouble("total_price"); // Replace with your column name
+            Date saleDate = resultSet.getDate("sale_date"); // Replace with your column name
+
+            //SalesRecord class with a constructor that matches these fields
+            SalesRecord record = new SalesRecord(id, productId, quantity, price, saleDate);
+            salesHistory.add(record);
+        }
+    }
+
+    return salesHistory;
+    }
+
 }
