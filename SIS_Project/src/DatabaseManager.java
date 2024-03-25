@@ -26,7 +26,7 @@ public class DatabaseManager{
     //Add new category
     public static void addNewCategory(Category c) throws SQLException {
         checkConnection(); // Ensure connection is established
-        String query = "insert into category values(?)";
+        String query = "INSERT INTO category VALUES(?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             // Set parameters
             statement.setObject(1, c.getName());
@@ -39,7 +39,7 @@ public class DatabaseManager{
     //Add a new manufacturer
     public static void addNewManufacturer(Manufacturer m) throws SQLException {
         checkConnection(); // Ensure connection is established
-        String query = "insert into manufacturer values(?)";
+        String query = "INSERT INTO manufacturer VALUES(?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             // Set parameters
             statement.setObject(1, m.getName());
@@ -52,7 +52,7 @@ public class DatabaseManager{
     // Insert product into the product database
     public static void addNewProduct(Product newProduct) throws SQLException {
         checkConnection(); // Ensure connection is established
-        String query = "insert into product values(?,?,?,?)";
+        String query = "INSERT INTO product VALUES(?,?,?,?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             // Set parameters
             statement.setObject(1, newProduct.getName());
@@ -68,7 +68,7 @@ public class DatabaseManager{
     //Add product to the stock inventory
     public static void addProductToStockInv(InventoryRecord record) throws SQLException {
         checkConnection(); // Ensure connection is established
-        String query = "insert into stock_inventory values(?,?,?,?,?)";
+        String query = "INSERT INTO stock_inventory VALUES(?,?,?,?,?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             // Set parameters
             statement.setObject(1, record.getProductID());
@@ -76,6 +76,25 @@ public class DatabaseManager{
             statement.setObject(3, record.getLocation());
             statement.setObject(4, record.getExpiration());
             statement.setObject(5, record.getDiscount());
+
+            // Execute the query
+            statement.executeUpdate();
+        }
+    }
+
+    //Move product to the display inventory
+    public static void moveProductToDisplayInv(int productId) throws SQLException {
+        checkConnection(); // Ensure connection is established
+
+        // Check whether product is already in display inventory
+        String query;
+        if(inInventory("display_inventory", productId))
+            query = "UPDATE display_inventory SET quantity = quantity + 1 WHERE product_id = ?;";
+        else
+            query = "SELECT * INTO display_inventory FROM stock_inventory WHERE product_id = ?;";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            //Set parameter
+            statement.setObject(1, productId);
 
             // Execute the query
             statement.executeUpdate();
@@ -89,31 +108,55 @@ public class DatabaseManager{
         return statement.executeQuery();
     }
 
+    //Helper method to check whether product with given ID is in a given table
+    public static boolean inInventory(String dbName, int productId) throws SQLException {
+        checkConnection(); // Ensure connection is established
+        boolean inInv = false;
+        String searchQuery = "SELECT COUNT(*) AS c FROM ? WHERE product_id = ?;";
+        try (PreparedStatement statement = connection.prepareStatement(searchQuery)){
+            // Set parameters
+            statement.setObject(1, dbName);
+            statement.setObject(2, productId);
+
+            //Get the amount of this product in the table
+            ResultSet search = statement.executeQuery();
+            int count = 0;
+            while(search.next()){
+                count = search.getInt("c");
+            }
+
+            //Decide whether product is in inventory
+            if(count > 0)
+                inInv = true;
+        }
+        return inInv;
+    }
+
     public static List<SalesRecord> getSalesHistory() throws SQLException {
     checkConnection(); // Ensure connection is established
 
    
-    String query = "SELECT * FROM sales_history"; // Replace 'sales_history' with your actual table name
-    List<SalesRecord> salesHistory = new ArrayList<>();
+        String query = "SELECT * FROM sales_history"; // Replace 'sales_history' with your actual table name
+        List<SalesRecord> salesHistory = new ArrayList<>();
 
-    try (PreparedStatement statement = connection.prepareStatement(query);
-         ResultSet resultSet = statement.executeQuery()) {
+        try (PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery()) {
 
-        while (resultSet.next()) {
-            // Retrieve each column value. 
-            int id = resultSet.getInt("id"); // Replace with your column name
-            int productId = resultSet.getInt("product_id"); // Replace with your column name
-            int quantity = resultSet.getInt("quantity_sold"); // Replace with your column name
-            double price = resultSet.getDouble("total_price"); // Replace with your column name
-            Date saleDate = resultSet.getDate("sale_date"); // Replace with your column name
+            while (resultSet.next()) {
+                // Retrieve each column value. 
+                int id = resultSet.getInt("id"); // Replace with your column name
+                int productId = resultSet.getInt("product_id"); // Replace with your column name
+                int quantity = resultSet.getInt("quantity_sold"); // Replace with your column name
+                double price = resultSet.getDouble("total_price"); // Replace with your column name
+                Date saleDate = resultSet.getDate("sale_date"); // Replace with your column name
 
-            //SalesRecord class with a constructor that matches these fields
-            SalesRecord record = new SalesRecord(id, productId, quantity, price, saleDate);
-            salesHistory.add(record);
+                //SalesRecord class with a constructor that matches these fields
+                SalesRecord record = new SalesRecord(id, productId, quantity, price, saleDate);
+                salesHistory.add(record);
+            }
         }
-    }
 
-    return salesHistory;
+        return salesHistory;
     }
 
 
@@ -126,20 +169,16 @@ public class DatabaseManager{
         String query = "DELETE FROM display_inventory WHERE product_id = ?"; // Replace 'display_inventory' and 'product_id' with your actual table and column names
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-        // Set the product ID parameter in the query
-        statement.setInt(1, productId);
+            // Set the product ID parameter in the query
+            statement.setInt(1, productId);
 
-        // Execute the delete statement
-        int rowsAffected = statement.executeUpdate();
-        if (rowsAffected > 0) {
-            System.out.println("Product removed from display inventory successfully.");
-        } else {
-            System.out.println("No product found with the provided ID.");
-        }
+            // Execute the delete statement
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Product removed from display inventory successfully.");
+            } else {
+                System.out.println("No product found with the provided ID.");
+            }
         }
     }
-
-
-
-
 }
