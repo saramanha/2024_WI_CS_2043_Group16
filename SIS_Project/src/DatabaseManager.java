@@ -89,9 +89,9 @@ public class DatabaseManager{
         // Check whether product is already in display inventory
         String query;
         if(inInventory("display_inventory", productId))
-            query = "UPDATE display_inventory SET quantity = quantity + 1 WHERE product_id = ?;";
+            query = "UPDATE display_inventory SET quantity = quantity + 1 WHERE prod_id = ?";
         else
-            query = "SELECT * INTO display_inventory FROM stock_inventory WHERE product_id = ?;";
+            query = "SELECT * INTO display_inventory FROM stock_inventory WHERE prod_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             //Set parameter
             statement.setObject(1, productId);
@@ -112,7 +112,7 @@ public class DatabaseManager{
     public static boolean inInventory(String dbName, int productId) throws SQLException {
         checkConnection(); // Ensure connection is established
         boolean inInv = false;
-        String searchQuery = "SELECT COUNT(*) AS c FROM ? WHERE product_id = ?;";
+        String searchQuery = "SELECT COUNT(*) AS c FROM ? WHERE prod_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(searchQuery)){
             // Set parameters
             statement.setObject(1, dbName);
@@ -133,8 +133,7 @@ public class DatabaseManager{
     }
 
     public static List<SalesRecord> getSalesHistory() throws SQLException {
-    checkConnection(); // Ensure connection is established
-
+        checkConnection(); // Ensure connection is established
    
         String query = "SELECT * FROM sales_history"; // Replace 'sales_history' with your actual table name
         List<SalesRecord> salesHistory = new ArrayList<>();
@@ -144,9 +143,9 @@ public class DatabaseManager{
 
             while (resultSet.next()) {
                 // Retrieve each column value. 
-                int id = resultSet.getInt("id"); // Replace with your column name
-                int productId = resultSet.getInt("product_id"); // Replace with your column name
-                int quantity = resultSet.getInt("quantity_sold"); // Replace with your column name
+                int id = resultSet.getInt("sale_id"); // Replace with your column name
+                int productId = resultSet.getInt("prod_id"); // Replace with your column name
+                int quantity = resultSet.getInt("sale_qty_sold"); // Replace with your column name
                 double price = resultSet.getDouble("total_price"); // Replace with your column name
                 Date saleDate = resultSet.getDate("sale_date"); // Replace with your column name
 
@@ -159,8 +158,59 @@ public class DatabaseManager{
         return salesHistory;
     }
 
+    public static List<InventoryRecord> getDisplayInventory() throws SQLException {
+        checkConnection(); // Ensure connection is established
 
+        String query = "SELECT * FROM display_inventory";
+        List<InventoryRecord> displayInv = new ArrayList<>();
 
+        try (PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery()) {
+            
+            while (resultSet.next()) {
+                //Retrieve each column value.
+                int id = resultSet.getInt("display_id");
+                int productId = resultSet.getInt("prod_id");
+                int quantity = resultSet.getInt("display_qty");
+                String location = resultSet.getString("display_loc");
+                Date expDate = resultSet.getDate("display_exp");
+                double discount = resultSet.getDouble("display_dis");
+
+                // InventoryRecord class with a constructor matching these fields
+                InventoryRecord record = new DisplayInvRecord(id, productId, quantity, location, expDate, discount);
+                displayInv.add(record);
+            }
+        }
+        
+        return displayInv;
+    }
+
+    public static List<InventoryRecord> getStockInventory() throws SQLException {
+        checkConnection(); // Ensure connection is established
+
+        String query = "SELECT * FROM stock_inventory";
+        List<InventoryRecord> stockInv = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery()) {
+            
+            while (resultSet.next()) {
+                //Retrieve each column value.
+                int id = resultSet.getInt("stock_id");
+                int productId = resultSet.getInt("prod_id");
+                int quantity = resultSet.getInt("stock_qty");
+                String location = resultSet.getString("stock_loc");
+                Date expDate = resultSet.getDate("stock_exp");
+                double discount = resultSet.getDouble("stock_dis");
+
+                // InventoryRecord class with a constructor matching these fields
+                InventoryRecord record = new StockInvRecord(id, productId, quantity, location, expDate, discount);
+                stockInv.add(record);
+            }
+        }
+        
+        return stockInv;
+    }
 
     public static void removeProductFromDisplayInventory(int productId) throws SQLException {
         checkConnection(); // Ensure the connection is established
