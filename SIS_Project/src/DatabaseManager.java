@@ -1,4 +1,8 @@
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DatabaseManager{
     // JDBC URL for MySQL
@@ -24,57 +28,82 @@ public class DatabaseManager{
     }
     
     //Add new category
-    public static void addNewCategory(Category c) throws SQLException {
+    public static int addNewCategory(Category c) throws SQLException {
         checkConnection(); // Ensure connection is established
-        String query = "INSERT INTO category VALUES(?)";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        String query = "INSERT INTO CATEGORY (CAT_NAME) VALUE(?)";
+        try (PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             // Set parameters
             statement.setObject(1, c.getName());
 
             // Execute the query
             statement.executeUpdate();
+            
+            ResultSet generatedKey = statement.getGeneratedKeys();
+            if (generatedKey != null && generatedKey.next()) {
+                return generatedKey.getInt(1);
+            } else {
+                throw new SQLException("Failed to retrieve auto-generated ID.");
+            }
         }
     }
 
     //Add a new manufacturer
-    public static void addNewManufacturer(Manufacturer m) throws SQLException {
+    public static int addNewManufacturer(Manufacturer m) throws SQLException {
         checkConnection(); // Ensure connection is established
-        String query = "INSERT INTO manufacturer VALUES(?)";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        String query = "INSERT INTO MANUFACTURER (MFR_NAME) VALUE(?)";
+        try (PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             // Set parameters
             statement.setObject(1, m.getName());
 
             // Execute the query
             statement.executeUpdate();
+            
+            ResultSet generatedKey = statement.getGeneratedKeys();
+            if (generatedKey != null && generatedKey.next()) {
+                return generatedKey.getInt(1);
+            } else {
+                throw new SQLException("Failed to retrieve auto-generated ID.");
+            }
         }
     }
 
     // Insert product into the product database
-    public static void addNewProduct(Product newProduct) throws SQLException {
+    public static int addNewProduct(Product newProduct) throws SQLException {
         checkConnection(); // Ensure connection is established
-        String query = "INSERT INTO product VALUES(?,?,?,?)";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        String query = "INSERT INTO PRODUCT (PROD_NAME, PROD_PRICE, CAT_ID, MFR_ID) VALUES(?,?,?,?)";
+        try (PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             // Set parameters
-            statement.setObject(1, newProduct.getName());
-            statement.setObject(2, newProduct.getCategoryID());
-            statement.setObject(3, newProduct.getManufacturerID());
-            statement.setObject(4, newProduct.getPrice());
+            statement.setObject(1, newProduct.getProductName());
+            statement.setObject(2, newProduct.getProductPrice());
+            statement.setObject(3, newProduct.getCategoryID());
+            statement.setObject(4, newProduct.getManufacturerID());
 
             // Execute the query
             statement.executeUpdate();
+            
+            ResultSet generatedKey = statement.getGeneratedKeys();
+            if (generatedKey != null && generatedKey.next()) {
+                return generatedKey.getInt(1);
+            } else {
+                throw new SQLException("Failed to retrieve auto-generated ID.");
+            }
         }
     }
 
     //Add product to the stock inventory
     public static void addProductToStockInv(InventoryRecord record) throws SQLException {
         checkConnection(); // Ensure connection is established
-        String query = "INSERT INTO stock_inventory VALUES(?,?,?,?,?)";
+        String query = "INSERT INTO STOCK_INVENTORY (PROD_ID, STOCK_QTY, STOCK_LOC, STOCK_EXP, STOCK_DIS) VALUES(?,?,?,?,?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             // Set parameters
             statement.setObject(1, record.getProductID());
             statement.setObject(2, record.getQuantity());
             statement.setObject(3, record.getLocation());
-            statement.setObject(4, record.getExpiration());
+            if (record.getExpiration() != null) {
+                statement.setObject(4, Date.valueOf(record.getExpiration()));
+            } else {
+                statement.setObject(4, null); // Set null if expiration date is null
+            }
             statement.setObject(5, record.getDiscount());
 
             // Execute the query
@@ -211,6 +240,26 @@ public class DatabaseManager{
         
         return stockInv;
     }
+    
+    public static Object[][] getProductList() throws SQLException {
+        checkConnection(); // Ensure connection is established
+
+        String query = "SELECT P.PROD_ID, P.PROD_NAME, P.PROD_PRICE, C.CAT_NAME, M.MFR_NAME " +
+                	   "FROM PRODUCT P " +
+                	   "JOIN CATEGORY C ON P.CAT_ID = C.CAT_ID " +
+                	   "JOIN MANUFACTURER M ON P.MFR_ID = M.MFR_ID";
+
+        try (PreparedStatement statement = connection.prepareStatement(query);
+        	 ResultSet resultSet = statement.executeQuery()) {
+        	//Convert resultSet to Object[][] and return it 
+            return resultSetToObjectArr(resultSet);
+            
+        } catch (SQLException e) {
+            e.printStackTrace(); // Print the exception details to the console for debugging
+            System.out.println("Error querying database for Product data");
+            return new Object[0][]; // Return an empty array in case of error
+        }
+    }
 
     public static void removeProductFromDisplayInventory(int productId) throws SQLException {
         checkConnection(); // Ensure the connection is established
@@ -231,4 +280,76 @@ public class DatabaseManager{
             }
         }
     }
+    
+    public static Map<String, Integer> getCategories() throws SQLException {
+    	checkConnection(); // Ensure the connection is established
+    	Map<String, Integer> categoriesMap = new HashMap<>();
+        Statement statement = null;
+        ResultSet resultSet = null;
+    	String query = "SELECT CAT_ID, CAT_NAME FROM CATEGORY";
+    	
+    	try {
+    		statement = connection.createStatement(); 
+    		resultSet = statement.executeQuery(query);
+    		
+    		while (resultSet.next()) {
+                int categoryId = resultSet.getInt("CAT_ID");
+                String categoryName = resultSet.getString("CAT_NAME");
+                categoriesMap.put(categoryName, categoryId);
+            }
+    	 } finally {
+			// Close resources
+			if (resultSet != null) resultSet.close();
+			if (statement != null) statement.close();
+			if (connection != null) connection.close();
+    	 }
+
+    	 return categoriesMap;	
+	}
+        
+    public static Map<String, Integer> getManufacturers() throws SQLException {
+    	checkConnection(); // Ensure the connection is established
+    	Map<String, Integer> manufacturerMap = new HashMap<>();
+        Statement statement = null;
+        ResultSet resultSet = null;
+    	String query = "SELECT MFR_ID, MFR_NAME FROM MANUFACTURER";
+    	
+    	try {
+    		statement = connection.createStatement(); 
+    		resultSet = statement.executeQuery(query);
+    		
+    		while (resultSet.next()) {
+                int manufacturerId = resultSet.getInt("MFR_ID");
+                String manufacturerName = resultSet.getString("MFR_NAME");
+                manufacturerMap.put(manufacturerName, manufacturerId);
+            }
+    	 } finally {
+			// Close resources
+			if (resultSet != null) resultSet.close();
+			if (statement != null) statement.close();
+			if (connection != null) connection.close();
+    	 }
+
+    	 return manufacturerMap;	
+	}
+
+    private static Object[][] resultSetToObjectArr(ResultSet resultSet) throws SQLException {
+		int numColumns = resultSet.getMetaData().getColumnCount();
+		List<Object[]> rows = new ArrayList<>();
+		
+		while (resultSet.next()) {
+		    Object[] row = new Object[numColumns];
+		    for (int i = 1; i <= numColumns; i++) {
+		        row[i - 1] = resultSet.getObject(i);
+		    }
+		    rows.add(row);
+		}
+		
+		Object[][] data = new Object[rows.size()][];
+		for (int i = 0; i < rows.size(); i++) {
+		    data[i] = rows.get(i);
+		}
+		
+		return data;
+	}
 }
