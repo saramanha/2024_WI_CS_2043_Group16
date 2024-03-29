@@ -364,6 +364,13 @@ public class addToStockClicked {
 				}
             	//Close window once everything is processed and database is updated
             	option2Frame.dispose();
+            	try {
+        			data = DatabaseManager.getProductList();
+        		} catch (SQLException e1) {
+        			System.out.println("Error getting Product list data");
+        			e1.printStackTrace();
+        		}
+        		resultTable = new JTable(data, columnNames);
             }
         });
 		
