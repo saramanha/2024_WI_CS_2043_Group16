@@ -1,20 +1,28 @@
-import java.awt.*;
-import java.awt.event.*;
+import java.sql.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class removeFromDisplayClicked{
-	public removeFromDisplayClicked() {
-		JFrame removeFrame = new JFrame();
+public class removeFromDisplayClicked {
+
+    private JFrame removeFrame;
+    private JTable resultTable;
+    private DefaultTableModel tableModel;
+
+    public removeFromDisplayClicked() {
+        removeFrame = new JFrame();
         removeFrame.setTitle("Remove Product from Display Inventory");
         removeFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // Get the content pane and add empty border to it for padding
         JPanel contentPane = new JPanel(new BorderLayout());
         contentPane.setBorder(new EmptyBorder(20, 20, 20, 20));
         removeFrame.setContentPane(contentPane);
 
-        // Search Panel
+
+         // Search Panel
         JPanel searchPanel = new JPanel(new FlowLayout());
         JTextField searchField = new JTextField(20);
         JButton searchButton = new JButton("Search");
@@ -22,9 +30,8 @@ public class removeFromDisplayClicked{
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
 
-        // Mock data for demonstration
         String[][] data = {
-    		{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
+            {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
             {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
             {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
             {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
@@ -35,10 +42,17 @@ public class removeFromDisplayClicked{
             {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
             {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"}
         };
+
+
+
+        // Define the column names for the table model
         String[] columnNames = {"Display ID", "Product Name", "Quantity", "Price", "Location", "Expiration Date", "Discount"};
-        JTable resultTable = new JTable(data, columnNames);
+
+        // Create a table model
+        tableModel = new DefaultTableModel(columnNames, 0);
+        resultTable = new JTable(tableModel);
         resultTable.setDefaultEditor(Object.class, null); // Make the table non-editable
-        
+
         JScrollPane scrollPane = new JScrollPane(resultTable);
         JPanel tablePanel = new JPanel(new BorderLayout()); // Wrap the scroll pane in a panel
         tablePanel.setBorder(new EmptyBorder(10, 0, 10, 0)); // Add padding around the table
@@ -54,7 +68,7 @@ public class removeFromDisplayClicked{
         JButton submitButton = new JButton("Submit");
         additionalFieldsPanel.add(new JLabel("Quantity:"));
         additionalFieldsPanel.add(field1);
-		additionalFieldsPanel.add(Box.createHorizontalStrut(15)); // Add horizontal spacing of 10 pixels
+        additionalFieldsPanel.add(Box.createHorizontalStrut(15)); // Add horizontal spacing of 10 pixels
         additionalFieldsPanel.add(submitButton);
 
         //Example of using the slected row of the datatable
@@ -67,7 +81,7 @@ public class removeFromDisplayClicked{
                     // Use the selectedItem as needed
                     System.out.println("Selected item: " + selectedItem);
                 } else {
-                	JFrame errorFrame = new JFrame();
+                    JFrame errorFrame = new JFrame();
                     JOptionPane.showMessageDialog(errorFrame, "Please select a row.", "No Row Selected", JOptionPane.WARNING_MESSAGE);
                 }
             }
@@ -82,4 +96,39 @@ public class removeFromDisplayClicked{
         removeFrame.setLocationRelativeTo(null);
         removeFrame.setVisible(true);
     }
-}
+
+
+        // Populate table with data from the database
+        populateTable();
+
+        
+    }
+
+    // Method to populate the table with data from the database
+    private void populateTable() {
+        // Clear the existing table data
+        tableModel.setRowCount(0);
+
+        try {
+            // Retrieve the data from the database
+            List<InventoryRecord> displayInventory = DatabaseManager.getDisplayInventory();
+            
+            // Populate the table model
+            for (InventoryRecord record : displayInventory) {
+                tableModel.addRow(new Object[] {
+                    record.getDisplayID(), // You'll need to implement a method to get Display ID or equivalent
+                    record.getProductName(),
+                    record.getQuantity(),
+                    record.getPrice(),
+                    record.getLocation(),
+                    record.getExpirationDate(),
+                    record.getDiscount()
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(removeFrame, "Error retrieving data from the database.", "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+  
