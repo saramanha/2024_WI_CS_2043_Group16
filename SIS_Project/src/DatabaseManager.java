@@ -129,13 +129,6 @@ public class DatabaseManager{
             statement.executeUpdate();
         }
     }
-    
-    // Retrieve data from the database
-    public static ResultSet retrieveData() throws SQLException {
-        checkConnection(); // Ensure connection is established
-        PreparedStatement statement = connection.prepareStatement();
-        return statement.executeQuery();
-    }
 
     //Helper method to check whether product with given ID is in a given table
     public static boolean inInventory(String dbName, int productId) throws SQLException {
@@ -187,58 +180,55 @@ public class DatabaseManager{
         return salesHistory;
     }
 
-    public static List<InventoryRecord> getDisplayInventory() throws SQLException {
+    public static String[][] getDisplayInventory() throws SQLException {
         checkConnection(); // Ensure connection is established
-
-        String query = "SELECT * FROM display_inventory";
-        List<InventoryRecord> displayInv = new ArrayList<>();
-
+ 
+        String query = "SELECT * FROM display_inventory JOIN product";
+        List<String[]> displayInv = new ArrayList<>();
+ 
         try (PreparedStatement statement = connection.prepareStatement(query);
             ResultSet resultSet = statement.executeQuery()) {
-            
             while (resultSet.next()) {
                 //Retrieve each column value.
-                int id = resultSet.getInt("display_id");
-                int productId = resultSet.getInt("prod_id");
-                int quantity = resultSet.getInt("display_qty");
-                String location = resultSet.getString("display_loc");
-                Date expDate = resultSet.getDate("display_exp");
-                double discount = resultSet.getDouble("display_dis");
-
+                String id = resultSet.getString("disp_id");
+                String productId = resultSet.getString("prod_id");
+                String quantity = resultSet.getString("disp_qty");
+                String location = resultSet.getString("disp_loc");
+                String expDate = resultSet.getString("disp_exp");
+                String discount = resultSet.getString("disp_dis");
+ 
                 // InventoryRecord class with a constructor matching these fields
-                InventoryRecord record = new DisplayInvRecord(id, productId, quantity, location, expDate, discount);
+                String[] record = {id, productId, quantity, location, expDate, discount};
                 displayInv.add(record);
             }
         }
-        
-        return displayInv;
+        return displayInv.toArray(new String[displayInv.size()][]);
     }
-
-    public static List<InventoryRecord> getStockInventory() throws SQLException {
+ 
+    public static String[][] getStockInventory() throws SQLException {
         checkConnection(); // Ensure connection is established
-
-        String query = "SELECT * FROM stock_inventory";
-        List<InventoryRecord> stockInv = new ArrayList<>();
-
+ 
+        String query = "SELECT * FROM stock_inventory JOIN product";
+        List<String[]> stockInv = new ArrayList<>();
+ 
         try (PreparedStatement statement = connection.prepareStatement(query);
             ResultSet resultSet = statement.executeQuery()) {
             
             while (resultSet.next()) {
                 //Retrieve each column value.
-                int id = resultSet.getInt("stock_id");
-                int productId = resultSet.getInt("prod_id");
-                int quantity = resultSet.getInt("stock_qty");
+                String id = resultSet.getString("stock_id");
+                String productId = resultSet.getString("prod_id");
+                String quantity = resultSet.getString("stock_qty");
                 String location = resultSet.getString("stock_loc");
-                Date expDate = resultSet.getDate("stock_exp");
-                double discount = resultSet.getDouble("stock_dis");
-
+                String expDate = resultSet.getString("stock_exp");
+                String discount = resultSet.getString("stock_dis");
+ 
                 // InventoryRecord class with a constructor matching these fields
-                InventoryRecord record = new StockInvRecord(id, productId, quantity, location, expDate, discount);
+                String[] record = {id, productId, quantity, location, expDate, discount};
                 stockInv.add(record);
             }
         }
-        
-        return stockInv;
+        return stockInv.toArray(new String[stockInv.size()][]);
     }
     
     public static Object[][] getProductList() throws SQLException {

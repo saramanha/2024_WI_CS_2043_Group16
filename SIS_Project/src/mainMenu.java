@@ -14,49 +14,12 @@ public class mainMenu{
         contentPane.setBorder(new EmptyBorder(20, 20, 20, 20));
         mainMenuFrame.setContentPane(contentPane);
 
-        //Create TabbedDataTable with some test data
-        Object[][][] data = {
-            {
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-                {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"}
-            },
-            {
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1"}
-            },
-            {
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"},
-            	{"Data 1", "Sample 1"}
-            }
-        };
+         try {
+        			data = DatabaseManager.getProductList();
+        		} catch (SQLException e1) {
+        			System.out.println("Error getting Product list data");
+        			e1.printStackTrace();
+        		}
 
         
         JPanel tabbedDataTablePanel = tabbedDataTable.createTabbedDataTable(data);
