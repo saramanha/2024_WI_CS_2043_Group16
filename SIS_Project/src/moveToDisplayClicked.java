@@ -1,10 +1,14 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.SQLException;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import java.util.ArrayList;
+import java.util.List;
 
 public class moveToDisplayClicked {
-	public moveToDisplayClicked() {
+	public moveToDisplayClicked() throws SQLException {
 		JFrame moveProductFrame = new JFrame();
 		moveProductFrame.setTitle("Move Product to Display Inventory");
 		moveProductFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -22,21 +26,8 @@ public class moveToDisplayClicked {
 		searchPanel.add(searchField);
 		searchPanel.add(searchButton);
 		
-		// Mock data for demonstration
-		String[][] data = {
-			{"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"},
-	        {"Data 1", "Sample 1", "Extra 1", "Data 1", "Sample 1", "Extra 1", "Test"}
-		};
+		String[][] data = DatabaseManager.getDisplayInventory();
+
 		String[] columnNames = {"Stock ID", "Product Name", "Quantity", "Price", "Location", "Expiration Date", "Discount"};
 		JTable resultTable = new JTable(data, columnNames);
 		resultTable.setDefaultEditor(Object.class, null); // Make the table non-editable
@@ -94,5 +85,5 @@ public class moveToDisplayClicked {
 		    moveProductFrame.setSize(810,348);
 		    moveProductFrame.setLocationRelativeTo(null);
 		    moveProductFrame.setVisible(true);
-		}
+	}
 }
