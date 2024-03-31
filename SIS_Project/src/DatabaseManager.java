@@ -207,6 +207,7 @@ public class DatabaseManager{
         return salesHistory;
     }
 
+
     public static Object[][] getDisplayInventory() throws SQLException {
         checkConnection(); // Ensure connection is established
  
