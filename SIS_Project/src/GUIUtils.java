@@ -1,7 +1,10 @@
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class TableFilterUtils {
+public class GUIUtils {
 	public static Object[][] filterDataByID(Object[][] originalData, int searchCriteria) {
 		List<Object[]> filteredRows = new ArrayList<>();
 
@@ -37,4 +40,34 @@ public class TableFilterUtils {
 	public static boolean isNumeric(String str) {
 	    return str.matches("-?\\d+(\\.\\d+)?");
 	}
+	
+    private static final String LOCATION_PATTERN = "\\d+-\\d+";
+	public static boolean isValidLocation(String location) {
+        Pattern pattern = Pattern.compile(LOCATION_PATTERN);
+        Matcher matcher = pattern.matcher(location);
+        return matcher.matches();
+    }
+    
+    public static BigDecimal convertDiscountToBigDecimal(String discount) {
+    	//Check if nothing has been entered in the discount field
+    	if (discount == null || discount.trim().isEmpty()) {
+            // Return a default discount value of BigDecimal.ZERO if input is empty
+            return BigDecimal.ZERO;
+        }
+    	
+    	try {
+            // Parse the percentage string to an integer
+            int discPercent = Integer.parseInt(discount);
+
+            // Calculate the decimal representation of the percentage
+            BigDecimal discDecimal = BigDecimal.valueOf(discPercent).divide(BigDecimal.valueOf(100));
+
+            // Return the decimal representation
+            return discDecimal;
+        } catch (NumberFormatException e) {
+            // Handle invalid input
+            System.err.println("Invalid input: " + e.getMessage());
+            return null;
+        }
+    }
 }

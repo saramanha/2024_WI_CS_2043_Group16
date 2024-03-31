@@ -11,11 +11,8 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class addToStockClicked {
-    private static final String LOCATION_PATTERN = "\\d+-\\d+";
     private JTable resultTable;
     private Object[][] data;
     private Map<String, Integer> categoryMap;
@@ -189,7 +186,7 @@ public class addToStockClicked {
             	
             	//Getting the location input and making sure it is correct format
             	invLocation = locationField.getText();
-            	if(!isValidLocation(invLocation)) {
+            	if(!GUIUtils.isValidLocation(invLocation)) {
             		JOptionPane.showMessageDialog(option1Frame, "Invalid location format. Please format as: Aisle#-Shelf#.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
             	}
@@ -203,7 +200,7 @@ public class addToStockClicked {
             	}
             	
             	//Getting the inputted discount percentage, converting it to decimal format, and making sure input is valid
-            	discount = convertDiscountToBigDecimal(discountField.getText());
+            	discount = GUIUtils.convertDiscountToBigDecimal(discountField.getText());
             	if(discount == null) {
             		JOptionPane.showMessageDialog(option1Frame, "Invalid discount format. Please enter a whole number for the discount percentage", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
@@ -334,7 +331,7 @@ public class addToStockClicked {
             	
             	//Getting the location input and making sure it is correct format
             	invLocation = locationField.getText();
-            	if(!isValidLocation(invLocation)) {
+            	if(!GUIUtils.isValidLocation(invLocation)) {
             		JOptionPane.showMessageDialog(option2Frame, "Invalid location format. Please format as: Aisle#-Shelf#.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
             	}
@@ -348,7 +345,7 @@ public class addToStockClicked {
             	}
             	
             	//Getting the inputted discount percentage, converting it to decimal format, and making sure input is valid
-            	discount = convertDiscountToBigDecimal(discountField.getText());
+            	discount = GUIUtils.convertDiscountToBigDecimal(discountField.getText());
             	if(discount == null) {
             		JOptionPane.showMessageDialog(option2Frame, "Invalid discount format. Please enter a whole number for the discount percentage", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
@@ -364,6 +361,13 @@ public class addToStockClicked {
 				}
             	//Close window once everything is processed and database is updated
             	option2Frame.dispose();
+            	try {
+        			data = DatabaseManager.getProductList();
+        		} catch (SQLException e1) {
+        			System.out.println("Error getting Product list data");
+        			e1.printStackTrace();
+        		}
+        		resultTable = new JTable(data, columnNames);
             }
         });
 		
@@ -378,13 +382,13 @@ public class addToStockClicked {
 	            	return;
 	            }
 	            // Check if the search criteria is a number
-	            else if (TableFilterUtils.isNumeric(searchCriteria)) {
+	            else if (GUIUtils.isNumeric(searchCriteria)) {
 	                // Filter by product ID (1st column)
-	                filteredData = TableFilterUtils.filterDataByID(data, Integer.parseInt(searchCriteria));
+	                filteredData = GUIUtils.filterDataByID(data, Integer.parseInt(searchCriteria));
 	                revertButton.setVisible(true);
 	            } else {
 	                // Filter by product name (2nd column)
-	            	filteredData = TableFilterUtils.filterDataByName(data, searchCriteria);
+	            	filteredData = GUIUtils.filterDataByName(data, searchCriteria);
 	            	revertButton.setVisible(true);
 	            }
 
@@ -464,35 +468,6 @@ public class addToStockClicked {
         }
         
         return true;
-    }
-    
-    public static boolean isValidLocation(String location) {
-        Pattern pattern = Pattern.compile(LOCATION_PATTERN);
-        Matcher matcher = pattern.matcher(location);
-        return matcher.matches();
-    }
-    
-    public static BigDecimal convertDiscountToBigDecimal(String discount) {
-    	//Check if nothing has been entered in the discount field
-    	if (discount == null || discount.trim().isEmpty()) {
-            // Return a default discount value of BigDecimal.ZERO if input is empty
-            return BigDecimal.ZERO;
-        }
-    	
-    	try {
-            // Parse the percentage string to an integer
-            int discPercent = Integer.parseInt(discount);
-
-            // Calculate the decimal representation of the percentage
-            BigDecimal discDecimal = BigDecimal.valueOf(discPercent).divide(BigDecimal.valueOf(100));
-
-            // Return the decimal representation
-            return discDecimal;
-        } catch (NumberFormatException e) {
-            // Handle invalid input
-            System.err.println("Invalid input: " + e.getMessage());
-            return null;
-        }
     }
     
     public static LocalDate getDateFromJDateChooser(JDateChooser dateChooser) {
