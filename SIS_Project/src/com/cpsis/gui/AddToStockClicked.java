@@ -1,8 +1,10 @@
+package com.cpsis.gui;
+import com.cpsis.database.*;
+import com.cpsis.objects.*;
+import com.toedter.calendar.JDateChooser;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-
-import com.toedter.calendar.JDateChooser;
 import java.awt.*;
 import java.awt.event.*;
 import java.math.BigDecimal;
@@ -12,7 +14,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Map;
 
-public class addToStockClicked {
+public class AddToStockClicked {
     private JTable resultTable;
     private Object[][] data;
     private Map<String, Integer> categoryMap;
@@ -28,7 +30,7 @@ public class addToStockClicked {
     private BigDecimal discount;
 	
 	
-    public addToStockClicked() {
+    public AddToStockClicked() {
     	JFrame addProductFrame = new JFrame();
     	addProductFrame.setTitle("Add Product to Stock Inventory");
     	addProductFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -223,7 +225,23 @@ public class addToStockClicked {
 					System.out.println("Failed to add new product to stock inventory");
 					e1.printStackTrace();
 				}
-            	//Close window once everything is processed and database is updated
+            	
+            	//Updating relevent tables
+            	try {
+            		Object[][] stockData = DatabaseManager.getStockInventory();
+            		Object[][] productData = DatabaseManager.getProductList();
+            		Object[][] catData = DatabaseManager.getCategoryList();
+            		Object[][] mfrData = DatabaseManager.getManufacturerList();
+            		TabbedDataTable.updateTableTab(1, stockData);
+            		TabbedDataTable.updateTableTab(2, productData);
+            		TabbedDataTable.updateTableTab(3, catData);
+            		TabbedDataTable.updateTableTab(4, mfrData);
+        		} catch (SQLException e1) {
+        			System.out.println("Error getting list data");
+        			e1.printStackTrace();
+        		}
+        		
+        		//Close window once everything is processed and database is updated
             	option1Frame.dispose();
             }
         });
@@ -278,7 +296,7 @@ public class addToStockClicked {
 		tablePanel.setBorder(new EmptyBorder(10, 0, 10, 0)); // Add padding around the table
 		tablePanel.add(scrollPane, BorderLayout.CENTER); // Add scroll pane to the panel
 		
-		/// Set the preferred viewport size based on the number of rows
+		// Set the preferred viewport size based on the number of rows
         int numRows = Math.min(resultTable.getRowCount(), 10);
         resultTable.setPreferredScrollableViewportSize(new Dimension(resultTable.getPreferredScrollableViewportSize().width, resultTable.getRowHeight() * numRows));
 
@@ -359,15 +377,18 @@ public class addToStockClicked {
 					System.out.println("Failed to add new product to stock inventory");
 					e1.printStackTrace();
 				}
-            	//Close window once everything is processed and database is updated
-            	option2Frame.dispose();
+
+            	//Update the table
             	try {
-        			data = DatabaseManager.getProductList();
-        		} catch (SQLException e1) {
-        			System.out.println("Error getting Product list data");
+        			Object[][] stockData = DatabaseManager.getStockInventory();
+            		TabbedDataTable.updateTableTab(0, stockData);
+            	} catch (SQLException e1) {
+        			System.out.println("Error getting display inventory data");
         			e1.printStackTrace();
         		}
-        		resultTable = new JTable(data, columnNames);
+            	
+            	//Close window once everything is processed and database is updated
+            	option2Frame.dispose();
             }
         });
 		

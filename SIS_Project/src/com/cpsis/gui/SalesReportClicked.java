@@ -1,3 +1,4 @@
+package com.cpsis.gui;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -6,8 +7,8 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class salesReportClicked {
-	public salesReportClicked() {
+public class SalesReportClicked {
+	public SalesReportClicked() {
 		JFrame salesReportFrame = new JFrame();
 		salesReportFrame.setTitle("View Sales History Reports");
 

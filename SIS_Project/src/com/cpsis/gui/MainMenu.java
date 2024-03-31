@@ -1,11 +1,14 @@
+package com.cpsis.gui;
+import com.cpsis.database.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.SQLException;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 
-public class mainMenu{
-    public mainMenu() {
+public class MainMenu{
+    public MainMenu() {
     	JFrame mainMenuFrame = new JFrame();
     	mainMenuFrame.setTitle("Supermarket Inventory System");
     	mainMenuFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -13,16 +16,8 @@ public class mainMenu{
         JPanel contentPane = new JPanel(new BorderLayout());
         contentPane.setBorder(new EmptyBorder(20, 20, 20, 20));
         mainMenuFrame.setContentPane(contentPane);
-
-         try {
-        			data = DatabaseManager.getProductList();
-        		} catch (SQLException e1) {
-        			System.out.println("Error getting Product list data");
-        			e1.printStackTrace();
-        		}
-
         
-        JPanel tabbedDataTablePanel = tabbedDataTable.createTabbedDataTable(data);
+        JPanel tabbedDataTablePanel = TabbedDataTable.createTabbedDataTable();
         
         mainMenuFrame.add(tabbedDataTablePanel, BorderLayout.CENTER);
 
@@ -37,25 +32,25 @@ public class mainMenu{
         //Add button functionality when clicked
         button1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                new addToStockClicked();
+                new AddToStockClicked();
             }
         });
         
         button2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                new moveToDisplayClicked();
+                new MoveToDisplayClicked();
             }
         });
         
         button3.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                new removeFromDisplayClicked();
+                new RemoveFromDisplayClicked();
             }
         });
         
         button4.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                new salesReportClicked();
+                new SalesReportClicked();
             }
         });
 
@@ -68,13 +63,36 @@ public class mainMenu{
         //Add the button panel to the content pane
         contentPane.add(buttonPanel, BorderLayout.SOUTH);
         
-        mainMenuFrame.setSize(725, 356);
+        mainMenuFrame.pack();
+        mainMenuFrame.setMinimumSize(new Dimension(850, 0));
         mainMenuFrame.setLocationRelativeTo(null);
         mainMenuFrame.setVisible(true);
     }
 
     public static void main(String[] args) {
     	JFrame.setDefaultLookAndFeelDecorated(true);
-        new mainMenu();
+    	
+    	// Establish the database connection
+        try {
+            DatabaseManager.checkConnection();
+            System.out.println("Database connection established successfully.");
+        } catch (SQLException e) {
+        	JOptionPane.showMessageDialog(null, "Failed to connect to the database:\n" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); 
+            // Exit the program
+            System.exit(1);
+        }
+        
+        // Add a shutdown hook to close the database connection
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                DatabaseManager.closeConnection();
+                System.out.println("Database connection closed successfully.");
+            } catch (SQLException e) {
+                System.err.println("Failed to close the database connection.");
+                e.printStackTrace();
+            }
+        }));
+    	
+        new MainMenu();
     }
 }

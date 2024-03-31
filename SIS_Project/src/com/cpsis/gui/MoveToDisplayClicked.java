@@ -1,31 +1,28 @@
+package com.cpsis.gui;
+import com.cpsis.database.DatabaseManager;
 import java.awt.*;
 import java.awt.event.*;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.SQLException;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
-import com.mysql.cj.x.protobuf.MysqlxCrud.Update;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class moveToDisplayClicked {
+public class MoveToDisplayClicked {
     private Object[][] data;
     private JTable resultTable;
     private int stockQty;
     private int inputQty;
     private int stockID;
     private int prodID;
-    private String stockLocation;
     private Date expiration;
     private BigDecimal stockDiscount;
     private String displayLocation;
     private BigDecimal displayDiscount;
 
-	public moveToDisplayClicked() {
+	public MoveToDisplayClicked() {
 		JFrame moveProductFrame = new JFrame();
 		moveProductFrame.setTitle("Move Product to Display Inventory");
 		moveProductFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -39,9 +36,12 @@ public class moveToDisplayClicked {
 		JPanel searchPanel = new JPanel(new FlowLayout());
 		JTextField searchField = new JTextField(20);
 		JButton searchButton = new JButton("Search");
+		JButton revertButton = new JButton("Remove Filter");
+		revertButton.setVisible(false);
 		searchPanel.add(new JLabel("Search by Name or ID:"));
 		searchPanel.add(searchField);
 		searchPanel.add(searchButton);
+		searchPanel.add(revertButton);
 		
 		try {
 			data = DatabaseManager.getStockInventory();
@@ -50,7 +50,7 @@ public class moveToDisplayClicked {
 			e.printStackTrace();
 		}
 
-		String[] columnNames = {"Stock ID", "Product ID", "Product Name", "Quantity", "Price", "Location", "Expiration Date", "Discount"};
+		String[] columnNames = {"Stock ID", "Product Name", "Stock Quantity", "Price", "Stock Location", "Expiration Date", "Discount"};
 		resultTable = new JTable(data, columnNames);
 		resultTable.setDefaultEditor(Object.class, null); // Make the table non-editable
 		
@@ -59,7 +59,7 @@ public class moveToDisplayClicked {
 		tablePanel.setBorder(new EmptyBorder(10, 0, 10, 0)); // Add padding around the table
 		tablePanel.add(scrollPane, BorderLayout.CENTER); // Add scroll pane to the panel
 		
-		/// Set the preferred viewport size based on the number of rows
+		// Set the preferred viewport size based on the number of rows
         int numRows = Math.min(resultTable.getRowCount(), 10);
         resultTable.setPreferredScrollableViewportSize(new Dimension(resultTable.getPreferredScrollableViewportSize().width, resultTable.getRowHeight() * numRows));
 
@@ -91,13 +91,20 @@ public class moveToDisplayClicked {
                 if (selectedRow != -1) { // If a row is selected
                 	//Get the value of the first column of the selected row and use that as the prodID
                 	stockID = (Integer) resultTable.getValueAt(selectedRow, 0);
-                	prodID = (Integer) resultTable.getValueAt(selectedRow, 1);
-                	stockQty = (Integer) resultTable.getValueAt(selectedRow, 3);
-                	expiration = (Date) resultTable.getValueAt(selectedRow, 6);
-                	stockDiscount = (BigDecimal) resultTable.getValueAt(selectedRow, 7);
+                	stockQty = (Integer) resultTable.getValueAt(selectedRow, 2);
+                	expiration = (Date) resultTable.getValueAt(selectedRow, 5);
+                	stockDiscount = (BigDecimal) resultTable.getValueAt(selectedRow, 6);
                 } else {
                     JOptionPane.showMessageDialog(moveProductFrame, "Please select a row.", "No Row Selected", JOptionPane.WARNING_MESSAGE);
                 }
+                
+                //Getting the prodID from the stockID
+                try {
+					prodID = DatabaseManager.getProdIDFromInvID(stockID, "STOCK_INVENTORY", "STOCK_ID");
+				} catch (SQLException e1) {
+					System.out.println("Failed to retreive Product ID using Stock ID");
+					e1.printStackTrace();
+				}
                 
                 //Getting the quantity input
                 try {
@@ -142,10 +149,57 @@ public class moveToDisplayClicked {
 					e1.printStackTrace();
 					return;
 				}
-                
+            	
+            	try {
+            		Object[][] displayData = DatabaseManager.getDisplayInventory();
+            		Object[][] stockData = DatabaseManager.getStockInventory();
+        			TabbedDataTable.updateTableTab(0, displayData);
+                	TabbedDataTable.updateTableTab(1, stockData);
+        		} catch (SQLException e1) {
+        			System.out.println("Error getting Product list data");
+        			e1.printStackTrace();
+        		}
+            	
+            	//Close window once everything is processed and database is updated
             	moveProductFrame.dispose();
             }
         });
+		
+		searchButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Get the search criteria from the text field
+	            String searchCriteria = searchField.getText().trim();
+	            Object[][] filteredData;
+	            
+	            if (searchCriteria.isEmpty()) {
+	            	return;
+	            }
+	            // Check if the search criteria is a number
+	            else if (GUIUtils.isNumeric(searchCriteria)) {
+	                // Filter by product ID (1st column)
+	                filteredData = GUIUtils.filterDataByID(data, Integer.parseInt(searchCriteria));
+	                revertButton.setVisible(true);
+	            } else {
+	                // Filter by product name (2nd column)
+	            	filteredData = GUIUtils.filterDataByName(data, searchCriteria);
+	            	revertButton.setVisible(true);
+	            }
+
+	            // Update the table with the filtered data
+	            DefaultTableModel model = new DefaultTableModel(filteredData, columnNames);
+	            resultTable.setModel(model);
+			}
+		});
+		
+		revertButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DefaultTableModel model = new DefaultTableModel(data, columnNames);
+				resultTable.setModel(model);
+				revertButton.setVisible(false);
+			}
+		});
 		
 		// Add components to the content pane
 		    contentPane.add(searchPanel, BorderLayout.NORTH);

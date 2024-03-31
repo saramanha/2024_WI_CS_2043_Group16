@@ -1,3 +1,4 @@
+package com.cpsis.objects;
 import java.math.BigDecimal;
 
 public class Product {
