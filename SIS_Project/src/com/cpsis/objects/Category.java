@@ -1,3 +1,4 @@
+package com.cpsis.objects;
 
 public class Category {
 	private String categoryName;

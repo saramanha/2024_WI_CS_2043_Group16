@@ -1,3 +1,4 @@
+package com.cpsis.objects;
 
 public class Manufacturer {
 	private String manufacturerName;

@@ -1,3 +1,5 @@
+package com.cpsis.database;
+import com.cpsis.objects.*;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
@@ -5,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.mysql.cj.Query;
+;
 
 public class DatabaseManager{
     // JDBC URL for MySQL
@@ -116,41 +118,40 @@ public class DatabaseManager{
 
     //Move product to the display inventory
     public static void moveProductToDisplayInv(int stockID, int productId, int quantity, String displayLoc, Date exipiration, BigDecimal discount) throws SQLException {
-        checkConnection(); // Ensure connection is established
-
-        // Check whether product is already in display inventory
+    	checkConnection(); // Ensure connection is established
         String query;
-        String displayTable = "DISPLAY_INVENTORY";
-        String stockTable = "STOCK_INVENTORY";
-        int displayID = inInventory(displayTable, productId, exipiration);
+        // Check whether product is already in display inventory table
+        int displayID = inDisplayTable(productId, exipiration);
         if(displayID > 0)
-            query = "UPDATE " + displayTable + " SET DISPLAY_QTY = DISPLAY_QTY + ? WHERE DISPLAY_ID = ?";
+            query = "UPDATE DISPLAY_INVENTORY " +
+            		"SET DISPLAY_QTY = DISPLAY_QTY + ?, DISPLAY_LOC = ?, DISPLAY_DIS = ? " + 
+            		"WHERE DISPLAY_ID = ?";
         else
             query = "INSERT INTO DISPLAY_INVENTORY (PROD_ID, DISPLAY_QTY, DISPLAY_LOC, DISPLAY_EXP, DISPLAY_DIS) " +
                     "SELECT PROD_ID, ?, ?, STOCK_EXP, ? FROM STOCK_INVENTORY WHERE STOCK_ID = ?";
         
         try (PreparedStatement statement = connection.prepareStatement(query)) {
         	statement.setInt(1, quantity);
+        	statement.setString(2, displayLoc);
+        	statement.setBigDecimal(3, discount);
         	if(displayID > 0) {
-            	statement.setInt(2, displayID);
+            	statement.setInt(4, displayID);
             }
             else {
-            	statement.setString(2, displayLoc);
-            	statement.setBigDecimal(3, discount);
             	statement.setInt(4, stockID);
             }
 
             // Execute the query
             statement.executeUpdate();
+            decInvQty("STOCK_INVENTORY", "STOCK_ID", "STOCK_QTY", stockID, quantity);
         }
-        decStockQty(stockID, quantity);
     }
 
-    //Helper method to check whether product with given ID is in a given table
-    public static int inInventory(String tableName, int productId, Date expiration) throws SQLException {
+    //Helper method to check whether product with given ID (and expiration date if given) is in a given table
+    public static int inDisplayTable(int productId, Date expiration) throws SQLException {
         checkConnection(); // Ensure connection is established
         int resultID = 0;
-        String query = "SELECT * FROM " + tableName + " WHERE PROD_ID = ?";
+        String query = "SELECT * FROM DISPLAY_INVENTORY WHERE PROD_ID = ?";
         if(expiration != null) {
         	query += " AND DISPLAY_EXP = ?";
         }
@@ -160,58 +161,108 @@ public class DatabaseManager{
             if(expiration != null) {
             	statement.setObject(2, expiration);
             }
-            //Get the amount of this product in the table
+            //Get the ID for result
             ResultSet search = statement.executeQuery();
-            while(search.next()){
+            if(search.next()){
                 resultID = search.getInt(1);
             }
         }
         return resultID;
     }
     
-    public static void decStockQty(int stockID, int quantity) throws SQLException {
+    public static void removeProductFromDisplayInventory(SalesRecord newSalesRecord, int displayID) throws SQLException {
     	checkConnection(); // Ensure connection is established
-    	String stockTable = "STOCK_INVENTORY";
-    	String query = "UPDATE " + stockTable + " SET STOCK_QTY = STOCK_QTY - ? WHERE STOCK_ID = ?";
+        String query;
+        int qtySold = newSalesRecord.getQtySold();
+        int productId = newSalesRecord.getProductID();
+        Date dateSold = Date.valueOf(newSalesRecord.getSaleDate());
+        BigDecimal saleDiscount = newSalesRecord.getSaleDiscount();
+        // Check whether product is already in sales history table
+        int saleID = inSalesHisTable(productId, dateSold, saleDiscount);
+        if(saleID > 0)
+            query = "UPDATE SALES_HISTORY " +
+            		"SET QTY_SOLD = QTY_SOLD + ? " + 
+            		"WHERE SALE_ID = ?";
+        else
+            query = "INSERT INTO SALES_HISTORY (QTY_SOLD, PROD_ID, SALE_DIS, DATE_SOLD) VALUES(?,?,?,?)";
+        
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        	statement.setInt(1, qtySold);
+        	if(saleID > 0) {
+            	statement.setInt(2, saleID);
+            }
+            else {
+            	statement.setInt(2, productId);
+            	statement.setBigDecimal(3, saleDiscount);
+            	statement.setDate(4, dateSold);
+            }
+            // Execute the query
+            statement.executeUpdate();
+            decInvQty("DISPLAY_INVENTORY", "DISPLAY_ID", "DISPLAY_QTY", displayID, qtySold);
+        }
+    }
+    
+    public static int inSalesHisTable(int prodID, Date dateSold, BigDecimal discount) throws SQLException{
+    	checkConnection(); // Ensure connection is established
+        int resultID = 0;
+        String query = "SELECT * FROM DISPLAY_INVENTORY WHERE PROD_ID = ? AND DATE_SOLD = ? AND SALE_DIS = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)){
+            // Set parameters
+            statement.setInt(1, prodID);
+            statement.setDate(2, dateSold);
+            statement.setBigDecimal(3, discount);
+            //Get the ID for result
+            ResultSet search = statement.executeQuery();
+            if(search.next()){
+                resultID = search.getInt(1);
+            }
+        }
+        return resultID;
+    }
+    
+    public static void decInvQty(String tableName, String colName, String qtyColName, int invID, int quantity) throws SQLException {
+    	checkConnection(); // Ensure connection is established
+    	String query = "UPDATE " + tableName + " SET " + qtyColName + " = " + qtyColName + " - ? WHERE " + colName + " = ?";
     	try (PreparedStatement statement = connection.prepareStatement(query)) {
     		statement.setObject(1, quantity);
-    		statement.setObject(2, stockID);
+    		statement.setObject(2, invID);
+    		// Execute the update query
+            int rowsUpdated = statement.executeUpdate();
+            
+            if (rowsUpdated > 0) {
+                // The update was successful, retrieve the resulting quantity and if = 0 remove record
+                String selectQuery = "SELECT STOCK_QTY FROM STOCK_INVENTORY WHERE STOCK_ID = ?";
+                try (PreparedStatement selectStatement = connection.prepareStatement(selectQuery)) {
+                    selectStatement.setInt(1, invID);
+                    try (ResultSet resultSet = selectStatement.executeQuery()) {
+                        if (resultSet.next()) {
+                            int resultQty =  resultSet.getInt("STOCK_QTY"); // Return the resulting STOCK_QTY
+                            if(resultQty == 0) {
+                            	deleteInvRecord(tableName, invID, colName);
+                            }
+                        }
+                    }
+                }
+            }
+    	}
+    }
+    
+    public static void deleteInvRecord(String tableName, int invID, String colName) throws SQLException{
+    	checkConnection(); // Ensure connection is established
+    	String query = "DELETE FROM " + tableName + " WHERE " + colName + " = ?";
+    	try (PreparedStatement statement = connection.prepareStatement(query)) {
+    		statement.setObject(1, invID);
     		// Execute the query
             statement.executeUpdate();
     	}
     }
 
-    public static List<SalesRecord> getSalesHistory() throws SQLException {
-        checkConnection(); // Ensure connection is established
-   
-        String query = "SELECT * FROM sales_history"; // Replace 'sales_history' with your actual table name
-        List<SalesRecord> salesHistory = new ArrayList<>();
-
-        try (PreparedStatement statement = connection.prepareStatement(query);
-            ResultSet resultSet = statement.executeQuery()) {
-
-            while (resultSet.next()) {
-                // Retrieve each column value. 
-                int id = resultSet.getInt("sale_id"); // Replace with your column name
-                int productId = resultSet.getInt("prod_id"); // Replace with your column name
-                int quantity = resultSet.getInt("sale_qty_sold"); // Replace with your column name
-                double price = resultSet.getDouble("total_price"); // Replace with your column name
-                Date saleDate = resultSet.getDate("sale_date"); // Replace with your column name
-
-                //SalesRecord class with a constructor that matches these fields
-                SalesRecord record = new SalesRecord(id, productId, quantity, price, saleDate);
-                salesHistory.add(record);
-            }
-        }
-
-        return salesHistory;
-    }
-
-
     public static Object[][] getDisplayInventory() throws SQLException {
         checkConnection(); // Ensure connection is established
  
-        String query = "SELECT * FROM DISPLAY_INVENTORY JOIN PRODUCT";
+        String query = "SELECT D.DISPLAY_ID, P.PROD_NAME, D.DISPLAY_QTY, P.PROD_PRICE, D.DISPLAY_LOC, D.DISPLAY_EXP, D.DISPLAY_DIS " + 
+        			   "FROM DISPLAY_INVENTORY D " + 
+        			   "JOIN PRODUCT P ON D.PROD_ID = P.PROD_ID";
         try (PreparedStatement statement = connection.prepareStatement(query);
            	 ResultSet resultSet = statement.executeQuery()) {
            	//Convert resultSet to Object[][] and return it 
@@ -219,7 +270,7 @@ public class DatabaseManager{
                
         } catch (SQLException e) {
         	e.printStackTrace(); // Print the exception details to the console for debugging
-        	System.out.println("Error querying database for Product data");
+        	System.out.println("Error querying database for display inventory data");
         	return new Object[0][]; // Return an empty array in case of error
         }
     }
@@ -227,18 +278,18 @@ public class DatabaseManager{
     public static Object[][] getStockInventory() throws SQLException {
         checkConnection(); // Ensure connection is established
  
-        String query = "SELECT S.STOCK_ID, P.PROD_ID, P.PROD_NAME, S.STOCK_QTY, P.PROD_PRICE, S.STOCK_LOC, S.STOCK_EXP, S.STOCK_DIS " +
+        String query = "SELECT S.STOCK_ID, P.PROD_NAME, S.STOCK_QTY, P.PROD_PRICE, S.STOCK_LOC, S.STOCK_EXP, S.STOCK_DIS " +
         				"FROM STOCK_INVENTORY S " +
         				"JOIN PRODUCT P ON S.PROD_ID = P.PROD_ID";
  
         try (PreparedStatement statement = connection.prepareStatement(query);
            	 ResultSet resultSet = statement.executeQuery()) {
-           	//Convert resultSet to Object[][] and return it 
+           	   //Convert resultSet to Object[][] and return it 
                return resultSetToObjectArr(resultSet);
                
            } catch (SQLException e) {
                e.printStackTrace(); // Print the exception details to the console for debugging
-               System.out.println("Error querying database for Product data");
+               System.out.println("Error querying database for stock inventory data");
                return new Object[0][]; // Return an empty array in case of error
            }
     }
@@ -262,37 +313,63 @@ public class DatabaseManager{
             return new Object[0][]; // Return an empty array in case of error
         }
     }
-
-    public static void removeProductFromDisplayInventory(int productId) throws SQLException {
-        checkConnection(); // Ensure the connection is established
-
-        // SQL query to delete a product from the display inventory table by its product ID
-        String query = "DELETE FROM display_inventory WHERE product_id = ?"; // Replace 'display_inventory' and 'product_id' with your actual table and column names
-
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            // Set the product ID parameter in the query
-            statement.setInt(1, productId);
-
-            // Execute the delete statement
-            int rowsAffected = statement.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("Product removed from display inventory successfully.");
-            } else {
-                System.out.println("No product found with the provided ID.");
-            }
-        }
+    
+    public static Object[][] getCategoryList() throws SQLException {
+    	checkConnection(); // Ensure connection is established
+    	
+    	String query = "SELECT CAT_ID, CAT_NAME FROM CATEGORY";
+    	
+    	try (PreparedStatement statement = connection.prepareStatement(query);
+    		ResultSet resultSet = statement.executeQuery()) {
+    		//Convert resultSet to Object[][] and return it 
+    		return resultSetToObjectArr(resultSet);
+               
+    	} catch (SQLException e) {
+    		e.printStackTrace(); // Print the exception details to the console for debugging
+    		System.out.println("Error querying database for category data");
+    		return new Object[0][]; // Return an empty array in case of error
+    	}
+    }
+    
+    public static Object[][] getManufacturerList() throws SQLException {
+    	checkConnection(); // Ensure connection is established
+    	
+    	String query = "SELECT MFR_ID, MFR_NAME FROM MANUFACTURER";
+    	
+    	try (PreparedStatement statement = connection.prepareStatement(query);
+    		ResultSet resultSet = statement.executeQuery()) {
+    		//Convert resultSet to Object[][] and return it 
+    		return resultSetToObjectArr(resultSet);
+               
+    	} catch (SQLException e) {
+    		e.printStackTrace(); // Print the exception details to the console for debugging
+    		System.out.println("Error querying database for manufacturer data");
+    		return new Object[0][]; // Return an empty array in case of error
+    	}
+    }
+    
+    public static int getProdIDFromInvID(int invID, String tableName, String colName) throws SQLException{
+    	checkConnection();
+    	String query = "SELECT PROD_ID FROM " + tableName + " WHERE " + colName + " = ?";
+    	int resultID = 0;
+    	try (PreparedStatement statement = connection.prepareStatement(query)) {
+        	statement.setInt(1, invID);
+        	ResultSet result = statement.executeQuery();
+        	if (result.next()) {
+        	    resultID = result.getInt(1); // Retrieves the value from the first column
+        	}
+    	}
+    	return resultID;
     }
     
     public static void updateDiscount(BigDecimal newDiscount, int stockID) throws SQLException {
-        checkConnection();
-        String stockInv = "STOCK_INVENTORY";
-    	String query = "UPDATE " + stockInv + " SET STOCK_DIS = ? WHERE STOCK_ID = ?";
+    	checkConnection();
+        String query = "UPDATE STOCK_INVENTORY SET STOCK_DIS = ? WHERE STOCK_ID = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-        	statement.setBigDecimal(1, newDiscount);
-        	statement.setInt(2, stockID);
+            statement.setBigDecimal(1, newDiscount);
+            statement.setInt(2, stockID);
+            statement.executeUpdate();
         }
-
-
     }
     
     public static Map<String, Integer> getCategories() throws SQLException {

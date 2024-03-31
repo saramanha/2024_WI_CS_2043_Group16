@@ -1,3 +1,4 @@
+package com.cpsis.objects;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
