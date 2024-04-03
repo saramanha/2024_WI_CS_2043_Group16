@@ -1,5 +1,8 @@
 package com.cpsis.gui;
 import com.cpsis.database.*;
+import com.cpsis.filehandling.FileHandler;
+import com.cpsis.filehandling.SalesReportSetup;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -71,7 +74,7 @@ public class MainMenu{
 
     public static void main(String[] args) {
     	JFrame.setDefaultLookAndFeelDecorated(true);
-    	
+        new MainMenu();
     	// Establish the database connection
         try {
             DatabaseManager.checkConnection();
@@ -92,7 +95,14 @@ public class MainMenu{
                 e.printStackTrace();
             }
         }));
-    	
-        new MainMenu();
+        
+        //Checking if this is the first run of the program
+        SalesReportSetup.checkFirstRun();
+        
+        //Checking if the last Sales Report that was created was over a week ago
+        //If so it creates a new sales report for this week
+        if(FileHandler.isWeekSinceLastFileCreation()) {
+        	FileHandler.createNewSalesReport();
+        }
     }
 }
