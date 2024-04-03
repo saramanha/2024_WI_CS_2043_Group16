@@ -2,6 +2,7 @@ package com.cpsis.database;
 import com.cpsis.objects.*;
 import java.math.BigDecimal;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -312,6 +313,51 @@ public class DatabaseManager{
             System.out.println("Error querying database for Product data");
             return new Object[0][]; // Return an empty array in case of error
         }
+    }
+    
+    public static List<String> getSalesHistory() throws SQLException {
+        checkConnection();
+    	List<String> salesHistoryData = new ArrayList<>();
+    	
+    	String query = "SELECT S.SALE_ID, S.DATE_SOLD, P.PROD_ID, P.PROD_NAME, S.QTY_SOLD, P.PROD_PRICE, S.SALE_DIS * 100.0 AS SALE_DIS, " +
+		    		   "S.QTY_SOLD * (P.PROD_PRICE * S.SALE_DIS) AS TOTAL_AMOUNT " +
+		    		   "FROM SALES_HISTORY S " +
+    				   "JOIN PRODUCT P ON P.PROD_ID = S.PROD_ID";
+
+        try (PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                int saleId = resultSet.getInt("SALE_ID");
+                Date dateSold = resultSet.getDate("DATE_SOLD");
+                int productId = resultSet.getInt("PROD_ID");
+                String productName = resultSet.getString("PROD_NAME");
+                int quantitySold = resultSet.getInt("QTY_SOLD");
+                BigDecimal productPrice = resultSet.getBigDecimal("PROD_PRICE");
+                BigDecimal saleDiscount = resultSet.getBigDecimal("SALE_DIS");
+                BigDecimal totalAmount = resultSet.getBigDecimal("TOTAL_AMOUNT");
+                
+                // Format the dateSold using SimpleDateFormat
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                String dateSoldStr = dateFormat.format(dateSold);
+
+                // Format the BigDecimal values
+                String productPriceStr = productPrice.toString(); // Convert to string
+                String saleDiscountStr = saleDiscount.toString(); // Convert to string
+                String totalAmountStr = totalAmount.toString(); // Convert to string
+
+                // Construct the sales record string
+                String salesRecord = String.format("%d %s %d %s %d $%s %s%% $%s",
+                        saleId, dateSoldStr, productId, productName, quantitySold, productPriceStr, saleDiscountStr, totalAmountStr);
+
+                salesHistoryData.add(salesRecord);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Handle SQLException appropriately (e.g., log, throw, etc.)
+        }
+
+        return salesHistoryData;
     }
     
     public static Object[][] getCategoryList() throws SQLException {
