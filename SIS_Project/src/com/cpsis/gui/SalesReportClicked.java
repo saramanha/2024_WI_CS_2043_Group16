@@ -5,6 +5,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -55,8 +56,14 @@ public class SalesReportClicked {
                         int selectedRow = filesTable.getSelectedRow();
                         if (selectedRow != -1) {
                             String fileName = (String) filesTable.getValueAt(selectedRow, 0);
-                            // Perform action with selected file (e.g., open the file)
-                            System.out.println("Selected file: " + fileName);
+                            String filePath = folderPath + File.separator + fileName; // Full path of the selected file
+                            try {
+                                Desktop.getDesktop().open(new File(filePath)); // Open the selected file
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                                // Handle error opening the file
+                                JOptionPane.showMessageDialog(null, "Error opening file: " + fileName, "Error", JOptionPane.ERROR_MESSAGE);
+                            }
                         }
                     }
                 }
