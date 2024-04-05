@@ -209,7 +209,7 @@ public class DatabaseManager{
     public static int inSalesHisTable(int prodID, Date dateSold, BigDecimal discount) throws SQLException{
     	checkConnection(); // Ensure connection is established
         int resultID = 0;
-        String query = "SELECT * FROM DISPLAY_INVENTORY WHERE PROD_ID = ? AND DATE_SOLD = ? AND SALE_DIS = ?";
+        String query = "SELECT * FROM SALES_HISTORY WHERE PROD_ID = ? AND DATE_SOLD = ? AND SALE_DIS = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)){
             // Set parameters
             statement.setInt(1, prodID);
@@ -235,7 +235,7 @@ public class DatabaseManager{
             
             if (rowsUpdated > 0) {
                 // The update was successful, retrieve the resulting quantity and if = 0 remove record
-                String selectQuery = "SELECT STOCK_QTY FROM STOCK_INVENTORY WHERE STOCK_ID = ?";
+                String selectQuery = "SELECT " + qtyColName + " FROM " + tableName + " WHERE STOCK_ID = ?";
                 try (PreparedStatement selectStatement = connection.prepareStatement(selectQuery)) {
                     selectStatement.setInt(1, invID);
                     try (ResultSet resultSet = selectStatement.executeQuery()) {
@@ -243,7 +243,7 @@ public class DatabaseManager{
                             int resultQty =  resultSet.getInt("STOCK_QTY"); // Return the resulting STOCK_QTY
                             if(resultQty <= 10) {
                             	JFrame popupFrame = new JFrame();
-                        		JOptionPane.showMessageDialog(popupFrame, "Restock required. There is only " + resultQty +  "of this item left in " + tableName , "Restock Warning", JOptionPane.ERROR_MESSAGE);
+                        		JOptionPane.showMessageDialog(popupFrame, "Restock required. There is " + resultQty +  " of this item left in " + tableName , "Restock Warning", JOptionPane.ERROR_MESSAGE);
                             }
                             if(resultQty == 0) {
                             	deleteInvRecord(tableName, invID, colName);
@@ -326,8 +326,7 @@ public class DatabaseManager{
         checkConnection();
     	List<String> salesHistoryData = new ArrayList<>();
     	
-    	String query = "SELECT S.SALE_ID, S.DATE_SOLD, P.PROD_ID, P.PROD_NAME, S.QTY_SOLD, P.PROD_PRICE, S.SALE_DIS * 100.0 AS SALE_DIS, " +
-		    		   "S.QTY_SOLD * (P.PROD_PRICE * S.SALE_DIS) AS TOTAL_AMOUNT " +
+    	String query = "SELECT S.SALE_ID, S.DATE_SOLD, P.PROD_ID, P.PROD_NAME, S.QTY_SOLD, P.PROD_PRICE, S.SALE_DIS * 100.0 AS SALE_DIS " +
 		    		   "FROM SALES_HISTORY S " +
     				   "JOIN PRODUCT P ON P.PROD_ID = S.PROD_ID";
 
@@ -342,7 +341,14 @@ public class DatabaseManager{
                 int quantitySold = resultSet.getInt("QTY_SOLD");
                 BigDecimal productPrice = resultSet.getBigDecimal("PROD_PRICE");
                 BigDecimal saleDiscount = resultSet.getBigDecimal("SALE_DIS");
-                BigDecimal totalAmount = resultSet.getBigDecimal("TOTAL_AMOUNT");
+                BigDecimal totalAmount;
+                if (saleDiscount.compareTo(BigDecimal.ZERO) != 0 && saleDiscount != null) {
+                	BigDecimal discountMultiplier = BigDecimal.ONE.subtract(saleDiscount.divide(BigDecimal.valueOf(100))); // Calculate discount multiplier
+                    totalAmount = productPrice.multiply(BigDecimal.valueOf(quantitySold)).multiply(discountMultiplier);
+				}
+                else {
+                	totalAmount = productPrice.multiply(BigDecimal.valueOf(quantitySold));
+                }
                 
                 // Format the dateSold using SimpleDateFormat
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -350,7 +356,7 @@ public class DatabaseManager{
 
                 // Format the BigDecimal values
                 String productPriceStr = productPrice.toString(); // Convert to string
-                String saleDiscountStr = saleDiscount.toString(); // Convert to string
+                String saleDiscountStr = saleDiscount != null ? saleDiscount.toString() : "0"; // Convert to string or set to "0" if null
                 String totalAmountStr = totalAmount.toString(); // Convert to string
 
                 // Construct the sales record string

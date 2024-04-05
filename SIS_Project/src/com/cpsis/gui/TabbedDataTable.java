@@ -45,7 +45,7 @@ public class TabbedDataTable {
 		createTableTab(tabbedPane, "Category List", catTableCols, catData);
 		
 		String[] mfrTableCols = {"Manufacturer ID", "Manufacturer Name"};
-		createTableTab(tabbedPane, "Category List", mfrTableCols, mfrData);
+		createTableTab(tabbedPane, "Manufacturer List", mfrTableCols, mfrData);
 
 		
         tabbedDataTablePanel.add(tabbedPane, BorderLayout.CENTER);
@@ -87,6 +87,12 @@ public class TabbedDataTable {
                 for (Object[] row : newData) {
                     model.addRow(row);
                 }
+                
+                // Recalculate the preferred viewport size based on the number of rows
+                int numRows = Math.min(table.getRowCount(), 10);
+                table.setPreferredScrollableViewportSize(new Dimension(table.getPreferredScrollableViewportSize().width, table.getRowHeight() * numRows - 19));
+                // Update the viewport size
+                scrollPane.revalidate();
             }
         }
     }

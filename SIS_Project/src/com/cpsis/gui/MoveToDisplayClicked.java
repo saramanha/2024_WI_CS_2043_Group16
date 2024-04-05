@@ -126,10 +126,15 @@ public class MoveToDisplayClicked {
             	}
                 
                 //Getting the discount inputted
-            	displayDiscount = GUIUtils.convertDiscountToBigDecimal(discountField.getText());
-            	if(displayDiscount == null) {
-            		JOptionPane.showMessageDialog(moveProductFrame, "Invalid discount format. Please enter a whole number for the discount percentage", "Error", JOptionPane.ERROR_MESSAGE);
-					return;
+            	if(!discountField.getText().trim().isEmpty()) {
+	            	displayDiscount = GUIUtils.convertDiscountToBigDecimal(discountField.getText());
+	            	if(displayDiscount == null) {
+	            		JOptionPane.showMessageDialog(moveProductFrame, "Invalid discount format. Please enter a whole number for the discount percentage", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+	            	}
+            	}
+            	else {
+            		displayDiscount = stockDiscount;
             	}
             	
             	if(displayDiscount != stockDiscount) {

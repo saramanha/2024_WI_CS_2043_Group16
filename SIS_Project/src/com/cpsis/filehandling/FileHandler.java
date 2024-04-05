@@ -28,7 +28,7 @@ public class FileHandler {
     }
 
     public static void createNewSalesReport() {
-        List<String[]> salesHistoryData = new ArrayList<>();
+        List<String> salesHistoryData = new ArrayList<>();
         try {
             // Assuming DatabaseManager.getSalesHistory() now returns a List<String[]> for simplicity
             salesHistoryData = DatabaseManager.getSalesHistory();
@@ -37,13 +37,19 @@ public class FileHandler {
             e.printStackTrace();
             return;
         }
+        
+        if (salesHistoryData == null || salesHistoryData.isEmpty()) {
+            System.out.println("No sales history data found.");
+            return;
+        }
+        
         //Get current date
         LocalDate currentDate = LocalDate.now();
         //Format date
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String dateString = currentDate.format(formatter);
         //Set new files name and getting the path, change to .csv extension
-        String fileName = dateString + "-SalesReport.csv";
+        String fileName = dateString + "_SalesReport.csv";
         Path newSalesReportPath = Paths.get(readFolderPathFromConfigFile(), fileName);
 
         try (CSVWriter writer = new CSVWriter(new FileWriter(newSalesReportPath.toString()))) {
@@ -51,8 +57,9 @@ public class FileHandler {
             String[] header = {"Sale ID", "Date Sold", "Product ID", "Product Name", "Quantity Sold", "Product Price", "Sale Discount", "Total Revenue"};
             writer.writeNext(header);
             // Write sales history data
-            for (String[] record : salesHistoryData) {
-                writer.writeNext(record);
+            for (String record : salesHistoryData) {
+            	String[] fields = record.split(" ");
+                writer.writeNext(fields);
             }
             System.out.println("Sales report written successfully.");
         } catch (IOException e) {
