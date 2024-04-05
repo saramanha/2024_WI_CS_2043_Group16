@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 ;
 
 public class DatabaseManager{
@@ -238,6 +241,10 @@ public class DatabaseManager{
                     try (ResultSet resultSet = selectStatement.executeQuery()) {
                         if (resultSet.next()) {
                             int resultQty =  resultSet.getInt("STOCK_QTY"); // Return the resulting STOCK_QTY
+                            if(resultQty <= 10) {
+                            	JFrame popupFrame = new JFrame();
+                        		JOptionPane.showMessageDialog(popupFrame, "Restock required. There is only " + resultQty +  "of this item left in " + tableName , "Restock Warning", JOptionPane.ERROR_MESSAGE);
+                            }
                             if(resultQty == 0) {
                             	deleteInvRecord(tableName, invID, colName);
                             }
