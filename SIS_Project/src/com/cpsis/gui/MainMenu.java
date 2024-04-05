@@ -100,9 +100,13 @@ public class MainMenu{
         SalesReportSetup.checkFirstRun();
         
         //Checking if the last Sales Report that was created was over a week ago
+        //For demonstration purposes it is disabled
         //If so it creates a new sales report for this week
+        /*
         if(FileHandler.isWeekSinceLastFileCreation()) {
         	FileHandler.createNewSalesReport();
         }
+        */
+    	FileHandler.createNewSalesReport();
     }
 }
